@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "995408287613",
+    "project_id": "minisms-bbf59",
+    "storage_bucket": "minisms-bbf59.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:995408287613:android:ff313463b903189b3b5e14",
+        "android_client_info": {
+          "package_name": "com.ecomnew"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "995408287613-sj5uj7qkre52h74uagkp7mc9ho7kudgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOJzmZo6gLRUSF6YJ6pRrXQ-xJg1f4Lfc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "995408287613-sj5uj7qkre52h74uagkp7mc9ho7kudgi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
