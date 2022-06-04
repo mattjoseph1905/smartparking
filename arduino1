@@ -1,0 +1,144 @@
+
+
+#include <FirebaseESP8266.h>
+#if defined(ESP32)
+#include <WiFi.h>
+#include <FirebaseESP32.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+
+#endif
+
+
+//Provide the token generation process info.
+#include <addons/TokenHelper.h>
+//Provide the RTDB payload printing info and other helper functions.
+#include <addons/RTDBHelper.h>
+
+//#define DHTPIN D2
+// Digital pin connected to the DHT sensor
+
+
+/* 1. Define the WiFi credentials */
+#define WIFI_SSID "mattmj"
+#define WIFI_PASSWORD "mattmj1905"
+
+//For the following credentials, see examples/Authentications/SignInAsUser/EmailPassword/EmailPassword.ino
+
+/* 2. Define the API Key */
+#define API_KEY "AIzaSyDOJzmZo6gLRUSF6YJ6pRrXQ-xJg1f4Lfc"
+
+/* 3. Define the RTDB URL */
+#define DATABASE_URL "https://minisms-bbf59-default-rtdb.europe-west1.firebasedatabase.app" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
+
+/* 4. Define the user Email and password that alreadey registerd or added in your project */
+#define USER_EMAIL "mattjoseph1900@gmail.com"
+#define USER_PASSWORD "123456"
+
+//Define Firebase Data object
+FirebaseData fbdo;
+
+FirebaseAuth auth;
+FirebaseConfig config;
+
+unsigned long sendDataPrevMillis = 0;
+
+unsigned long count = 0;
+//DHT dht(DHTPIN, DHTTYPE);
+
+void setup()
+{
+pinMode(D1,INPUT);
+pinMode(D2,INPUT);
+pinMode(D3,INPUT);
+  Serial.begin(115200);
+  //dht.begin();
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(300);
+  }
+  Serial.println();
+  Serial.print("Connected with IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.println();
+
+  Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
+
+  /* Assign the api key (required) */
+  config.api_key = API_KEY;
+
+  /* Assign the user sign in credentials */
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
+
+  /* Assign the RTDB URL (required) */
+  config.database_url = DATABASE_URL;
+
+  /* Assign the callback function for the long running token generation task */
+  config.token_status_callback = tokenStatusCallback; //see addons/TokenHelper.h
+
+  //Or use legacy authenticate method
+  //config.database_url = DATABASE_URL;
+  //config.signer.tokens.legacy_token = "<database secret>";
+
+  //To connect without auth in Test Mode, see Authentications/TestMode/TestMode.ino
+
+  //////////////////////////////////////////////////////////////////////////////////////////////
+  //Please make sure the device free Heap is not lower than 80 k for ESP32 and 10 k for ESP8266,
+  //otherwise the SSL connection will fail.
+  //////////////////////////////////////////////////////////////////////////////////////////////
+
+  Firebase.begin(&config, &auth);
+
+  //Comment or pass false value when WiFi reconnection will control by your code or third party library
+  Firebase.reconnectWiFi(true);
+
+  Firebase.setDoubleDigits(5);
+}
+
+void loop()
+{
+  int x=digitalRead(D1);
+  int y=digitalRead(D2);
+  int z=digitalRead(D3);
+  if (Firebase.ready() && (millis() - sendDataPrevMillis > 3000 || sendDataPrevMillis == 0))
+  {
+    sendDataPrevMillis = millis();
+    Serial.printf("Set ir1... %s\n", Firebase.setFloat(fbdo, F("/test/slot/ir1"), x) ? "ok" : fbdo.errorReason().c_str());
+
+    Serial.printf("Get ir1... %s\n", Firebase.getFloat(fbdo, F("/test//slot/ir1")) ? String(fbdo.to<float>()).c_str() : fbdo.errorReason().c_str());
+    
+    Serial.printf("Set ir2... %s\n", Firebase.setFloat(fbdo, F("/test/slot/ir2"), y) ? "ok" : fbdo.errorReason().c_str());
+
+    Serial.printf("Get ir2... %s\n", Firebase.getFloat(fbdo, F("/test/slot/ir2")) ? String(fbdo.to<float>()).c_str() : fbdo.errorReason().c_str());
+    
+    Serial.printf("Set ir3... %s\n", Firebase.setFloat(fbdo, F("/test/slot/ir3"), z) ? "ok" : fbdo.errorReason().c_str());
+
+    Serial.printf("Get ir3... %s\n", Firebase.getFloat(fbdo, F("/test/slot/ir3")) ? String(fbdo.to<float>()).c_str() : fbdo.errorReason().c_str());
+
+    
+        //For the usage of FirebaseJson, see examples/FirebaseJson/BasicUsage/Create_Parse_Edit.ino
+    FirebaseJson json;
+
+    if (count == 0)
+    {
+      json.set("value/round/" + String(count), F("cool!"));
+      json.set(F("vaue/ts/.sv"), F("timestamp"));
+      Serial.printf("Set json... %s\n", Firebase.set(fbdo, F("/test/json"), json) ? "ok" : fbdo.errorReason().c_str());
+    }
+    else
+    {
+      Serial.printf("not working");
+      json.add(String(count), "smart!");
+      Serial.printf("Update node... %s\n", Firebase.updateNode(fbdo, F("/test/json/value/round"), json) ? "ok" : fbdo.errorReason().c_str());
+    }
+    
+    Serial.println();
+    
+    
+    count++;
+  }
+}
